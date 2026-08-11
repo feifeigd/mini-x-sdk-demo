@@ -1,5 +1,9 @@
+import asyncio
+import json
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 app = FastAPI(title="Mini X SDK Demo Backend")
@@ -26,6 +30,12 @@ class Item(BaseModel):
     id: int
     name: str
     description: str | None = None
+
+
+class ChatRequest(BaseModel):
+    """聊天请求入参，对应前端 useXChat onRequest 传的 message"""
+
+    message: str
 
 
 # 模拟数据库
@@ -71,3 +81,33 @@ def create_item(item: Item) -> Item:
 def health_check() -> dict:
     """健康检查接口"""
     return {"status": "ok", "service": "mini-x-sdk-demo-backend"}
+
+
+# ============ SSE 流式聊天接口 ============
+
+
+async def _mock_stream(prompt: str):
+    """模拟 LLM 逐字流式输出。真实项目里这里调用 OpenAI / 本地模型。"""
+    reply = f"你刚才说的是：{prompt}。这是一个模拟的流式回复，用于演示 antd x 的 useXChat。"
+    # 按字符切，每个 chunk 间隔 30ms，模拟打字机效果
+    for ch in reply:
+        payload = json.dumps({"content": ch}, ensure_ascii=False)
+        # 必须用 \n（不是 \r\n），事件之间用 \n\n 分隔
+        # 这样 @ant-design/x-sdk 的 XStream 才能正确按默认分隔符解析
+        yield f"data: {payload}\n\n"
+        await asyncio.sleep(0.03)
+
+
+@app.post("/api/chat", tags=["Chat"])
+async def chat(req: ChatRequest):
+    """
+    SSE 流式聊天接口。
+    - 入参：JSON body { "message": "用户输入" }
+    - 返回：text/event-stream，每个事件 data 字段是 JSON 字符串 {"content": "一个字"}
+    - 前端 @ant-design/x-sdk 的 XRequest 会按 SSE 解析，XStream 输出 SSEOutput 对象
+    """
+    return StreamingResponse(
+        _mock_stream(req.message),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

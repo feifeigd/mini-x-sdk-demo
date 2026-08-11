@@ -1,59 +1,70 @@
 import { useState } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
-import { chatStream } from './streamApi';
+import {
+    AbstractChatProvider,
+    XRequest,
+    useXChat,
+    type SSEOutput,
+    type TransformMessage,
+    type XRequestOptions,
+} from '@ant-design/x-sdk';
 
-interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
+interface ChatInput {
+    message: string;
 }
 
-interface StreamChunk {
-    content?: string;
-    choices?: Array<{ delta?: { content?: string } }>;
+/**
+ * 自定义 Provider：
+ * - transformLocalMessage: 把 { message: "xxx" } 转成展示用的字符串
+ * - transformMessage: 把每个 SSE chunk 累加到 originMessage，实现打字机效果
+ *    （DefaultChatProvider 默认是替换式，不是累加，不适合本场景）
+ */
+class ChatProvider extends AbstractChatProvider<string, ChatInput, SSEOutput> {
+    transformParams(
+        requestParams: Partial<ChatInput>,
+        options: XRequestOptions<ChatInput, SSEOutput, string>,
+    ): ChatInput {
+        return {
+            ...(options?.params || {}),
+            ...(requestParams || {}),
+        } as ChatInput;
+    }
+
+    transformLocalMessage(requestParams: Partial<ChatInput>): string {
+        return requestParams.message || '';
+    }
+
+    transformMessage(info: TransformMessage<string, SSEOutput>): string {
+        const { chunk, originMessage } = info;
+        if (chunk) {
+            try {
+                const parsed = JSON.parse(chunk.data || '{}');
+                return (originMessage || '') + (parsed.content || '');
+            } catch {
+                return originMessage || '';
+            }
+        }
+        return originMessage || '';
+    }
 }
 
 export default function Chat() {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
-    const [loading, setLoading] = useState(false);
 
-    const handleSend = async (content: string) => {
-        const text = content.trim();
-        if (!text || loading) return;
+    // 仅创建一次 provider 实例
+    const [provider] = useState(() => {
+        // 向后端服务接口发起请求，获取响应数据。如果是OpenAI Compatible的LLM服务，建议使用 XModelAPI。
+        const request = XRequest('/api/chat', { manual: true });
+        return new ChatProvider({ request });
+    });
 
-        // 先插入 assistant 占位，等待服务器响应再更新内容
-        setMessages((prev) => [
-            ...prev,
-            { role: 'user', content: text },
-            { role: 'assistant', content: '' },
-        ]);
+    const { messages, onRequest, isRequesting } = useXChat({ provider });
+
+    const handleSend = (value: string) => {
+        const text = value.trim();
+        if (!text || isRequesting) return;
         setInput('');
-        setLoading(true);
-
-        try {
-            let acc = '';
-            for await (const chunk of chatStream(text)) {
-                const c = chunk as StreamChunk;
-                const delta = c?.content ?? c?.choices?.[0]?.delta?.content ?? '';
-                acc += delta;
-                setMessages((prev) => {
-                    const next = [...prev];
-                    next[next.length - 1] = { role: 'assistant', content: acc };
-                    return next;
-                });
-            }
-        } catch (err) {
-            setMessages((prev) => {
-                const next = [...prev];
-                next[next.length - 1] = {
-                    role: 'assistant',
-                    content: `出错: ${err instanceof Error ? err.message : String(err)}`,
-                };
-                return next;
-            });
-        } finally {
-            setLoading(false);
-        }
+        onRequest({ message: text });
     };
 
     return (
@@ -64,11 +75,11 @@ export default function Chat() {
                         发送一条消息开始对话
                     </div>
                 ) : (
-                    messages.map((msg, idx) => (
+                    messages.map((msg) => (
                         <Bubble
-                            key={idx}
-                            placement={msg.role === 'user' ? 'start' : 'end'}
-                            content={msg.content}
+                            key={msg.id}
+                            placement={msg.status === 'local' ? 'start' : 'end'}
+                            content={msg.message}
                         />
                     ))
                 )}
@@ -77,7 +88,7 @@ export default function Chat() {
                 value={input}
                 onChange={setInput}
                 onSubmit={handleSend}
-                loading={loading}
+                loading={isRequesting}
                 placeholder="输入消息，回车发送"
             />
         </div>
