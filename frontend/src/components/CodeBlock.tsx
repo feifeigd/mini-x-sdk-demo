@@ -4,6 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Mermaid from './Mermaid';
 import PlantUml from './PlantUml';
+import Infographic from './Infographic';
 
 interface CodeBlockProps {
     children?: ReactNode;
@@ -24,7 +25,7 @@ const syntaxStyle = {
 /**
  * 统一代码块组件：
  * - 普通代码：语法高亮 + 语言标签 + 复制按钮
- * - 图（mermaid/plantuml）：Tab 切换「预览 / 源码」，预览看图表，源码看高亮代码
+ * - 图（mermaid/plantuml/infographic）：Tab 切换「预览 / 源码」，预览看图表，源码看高亮代码
  * - 行内代码直接渲染
  */
 export default function CodeBlock({
@@ -57,11 +58,12 @@ export default function CodeBlock({
 
     const isMermaid = lang === 'mermaid';
     const isPlantUml = lang === 'plantuml';
-    const isDiagram = isMermaid || isPlantUml;
+    const isInfographic = lang === 'infographic';
+    const isDiagram = isMermaid || isPlantUml || isInfographic;
 
     const sourceView = (
         <SyntaxHighlighter
-            language={lang || 'text'}
+            language={isInfographic ? 'yaml' : lang || 'text'}
             style={oneDark}
             customStyle={syntaxStyle}
         >
@@ -121,8 +123,13 @@ export default function CodeBlock({
                                             chart={text}
                                             streamStatus={streamStatus}
                                         />
-                                    ) : (
+                                    ) : isPlantUml ? (
                                         <PlantUml
+                                            chart={text}
+                                            streamStatus={streamStatus}
+                                        />
+                                    ) : (
+                                        <Infographic
                                             chart={text}
                                             streamStatus={streamStatus}
                                         />

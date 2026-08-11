@@ -138,7 +138,7 @@ function App() {
             <div className="card">
 
                 <h2>AI 聊天（单会话）</h2>
-                <div style={{ height: '50vh' }}>
+                <div style={{ height: '100vh' }}>
                     <Chat />
                 </div>
             </div>

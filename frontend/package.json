@@ -13,6 +13,7 @@
         "@ant-design/x": "^2.9.0",
         "@ant-design/x-markdown": "^2.9.0",
         "@ant-design/x-sdk": "^2.9.0",
+        "@antv/infographic": "^0.2.19",
         "antd": "^6.5.4",
         "mermaid": "^11.16.1",
         "plantuml-encoder": "^1.4.0",
