@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import Chat from './chat'
+import MultiChat from './MultiChat'
 
 interface Item {
     id: number
@@ -135,8 +136,21 @@ function App() {
             </div>
             
             <div className="card">
-                <h2>AI 聊天</h2>
-                <Chat />
+
+                <h2>AI 聊天（单会话）</h2>
+                <div style={{ height: '50vh' }}>
+                    <Chat />
+                </div>
+            </div>
+
+            <div className="card">
+                <h2>AI 聊天（多会话）</h2>
+                <p style={{ color: '#666', marginTop: '-0.5em' }}>
+                    多会话支持：左侧新建/切换/删除会话，右侧聊天区按会话独立保存消息
+                </p>
+            </div>
+            <div className="chat-card">
+                <MultiChat />
             </div>
         </div>
     )

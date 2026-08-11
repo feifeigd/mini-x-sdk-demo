@@ -42,3 +42,13 @@
 .read-the-docs {
     color: #888;
 }
+
+.chat-card {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
