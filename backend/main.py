@@ -1,6 +1,8 @@
 import asyncio
 import json
+import os
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -85,6 +87,68 @@ def health_check() -> dict:
 
 # ============ SSE 流式聊天接口 ============
 
+# DeepSeek API 配置
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
+DEEPSEEK_MODEL = "deepseek-chat"
+
+
+def _sse(payload: dict) -> str:
+    """格式化 SSE 事件，必须用 \n（不是 \r\n），事件之间用 \n\n 分隔
+    这样 @ant-design/x-sdk 的 XStream 才能正确按默认分隔符解析"""
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+async def _deepseek_stream(prompt: str):
+    """调用 DeepSeek API（OpenAI 兼容格式）流式输出"""
+    if not DEEPSEEK_API_KEY:
+        # 密钥缺失，fallback 到 mock 模式
+        async for chunk in _mock_stream(prompt):
+            yield chunk
+        return
+
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "model": DEEPSEEK_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": True,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0)) as client:
+            async with client.stream(
+                "POST", DEEPSEEK_API_URL, headers=headers, json=body
+            ) as response:
+                if response.status_code != 200:
+                    err_text = ""
+                    async for chunk in response.aiter_text():
+                        err_text += chunk
+                    yield _sse(
+                        {"content": f"[DeepSeek API 错误 {response.status_code}] {err_text[:200]}"}
+                    )
+                    return
+
+                # 解析 SSE 流：每行以 "data: " 开头，结尾 [DONE] 表示结束
+                async for line in response.aiter_lines():
+                    if not line or not line.startswith("data:"):
+                        continue
+                    data = line[len("data:") :].strip()
+                    if data == "[DONE]":
+                        return
+                    try:
+                        chunk_json = json.loads(data)
+                        delta = chunk_json.get("choices", [{}])[0].get("delta", {})
+                        content = delta.get("content", "")
+                        if content:
+                            yield _sse({"content": content})
+                    except (json.JSONDecodeError, IndexError, KeyError):
+                        continue
+    except httpx.HTTPError as e:
+        yield _sse({"content": f"[网络错误] {e}"})
+
 
 async def _mock_stream(prompt: str):
     """模拟 LLM 逐字流式输出。真实项目里这里调用 OpenAI / 本地模型。"""
@@ -108,6 +172,21 @@ async def chat(req: ChatRequest):
     """
     return StreamingResponse(
         _mock_stream(req.message),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.post("/api/chat/deepseek", tags=["Chat"])
+async def chat_deepseek(req: ChatRequest):
+    """
+    SSE 流式聊天接口（DeepSeek）。
+    - 入参：JSON body { "message": "用户输入" }
+    - 返回：text/event-stream，每个事件 data 字段是 JSON 字符串 {"content": "..."}
+    - 调用 DeepSeek API，密钥未设置时 fallback 到 mock
+    """
+    return StreamingResponse(
+        _deepseek_stream(req.message),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

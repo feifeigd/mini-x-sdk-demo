@@ -56,7 +56,7 @@ function App() {
 
     return (
         <div className="app">
-            <div>
+            <div className="app-header">
                 <h1>Mini X SDK Demo</h1>
                 <p>
                     前后端分离项目 - FastAPI + React + TypeScript

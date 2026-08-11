@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
+import { XMarkdown } from '@ant-design/x-markdown';
 import {
     AbstractChatProvider,
     XRequest,
@@ -50,9 +51,22 @@ class ChatProvider extends AbstractChatProvider<string, ChatInput, SSEOutput> {
 
 // 角色配置：local=用户(end)，其他=AI(start)
 // 引用保持稳定，避免每次渲染都重建对象导致打字动画重置
+// AI 消息用 XMarkdown 渲染，流式时设 hasNextChunk=true 启用打字机/淡入动画
 const roles = {
     user: { placement: 'end' as const },
-    ai: { placement: 'start' as const },
+    ai: {
+        placement: 'start' as const,
+        contentRender: (content: string, info: { status?: string }) => (
+            <XMarkdown
+                content={content}
+                streaming={{
+                    hasNextChunk:
+                        info.status === 'loading' || info.status === 'updating',
+                    enableAnimation: true,
+                }}
+            />
+        ),
+    },
 };
 
 export default function Chat() {
@@ -61,7 +75,7 @@ export default function Chat() {
     // 仅创建一次 provider 实例
     const [provider] = useState(() => {
         // 向后端服务接口发起请求，获取响应数据。如果是OpenAI Compatible的LLM服务，建议使用 XModelAPI。
-        const request = XRequest('/api/chat', { manual: true });
+        const request = XRequest('/api/chat/deepseek', { manual: true });
         return new ChatProvider({ request });
     });
 
