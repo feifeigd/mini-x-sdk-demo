@@ -73,7 +73,7 @@ export default function MultiChat() {
 
     // useXChat 内部用全局 chatMessagesStoreHelper 按 conversationKey 缓存各会话消息
     // 切换 activeKey 时会自动加载对应会话的历史消息
-    const { messages, onRequest, isRequesting } = useXChat({
+    const { messages, onRequest, isRequesting, setMessages } = useXChat({
         provider,
         conversationKey: activeKey,
     });
@@ -97,13 +97,16 @@ export default function MultiChat() {
     };
 
     const handleDelete = (key: string) => {
-        setConversations((prev) => {
-            const next = prev.filter((c) => c.key !== key);
-            if (key === activeKey && next.length > 0) {
-                setActiveKey(next[0].key);
+        // 删除的是当前会话：先切到其他会话，再清空当前会话的消息缓存
+        if (key === activeKey) {
+            const next = conversations.find((c) => c.key !== key);
+            if (next) {
+                setActiveKey(next.key);
             }
-            return next;
-        });
+            // 清空被删会话的消息，避免内存泄漏（SDK 全局 store 不可直接访问，只能清当前 key 的）
+            setMessages([]);
+        }
+        setConversations((prev) => prev.filter((c) => c.key !== key));
     };
 
     return (
