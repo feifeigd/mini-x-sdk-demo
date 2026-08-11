@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Layout, theme } from 'antd';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
@@ -15,7 +15,7 @@ import ConversationList, {
     type ConversationListItem,
 } from './components/ConversationList';
 import { nextConvId } from './components/conversation-utils';
-import Mermaid from './components/Mermaid';
+import CodeBlock from './components/CodeBlock';
 
 const { Sider, Content } = Layout;
 const { useToken } = theme;
@@ -30,25 +30,9 @@ const markedExtensions = {
     }),
 };
 
-// 自定义组件：识别 mermaid 代码块并渲染为图表
+// 自定义组件：所有代码块统一用 CodeBlock（含复制按钮、mermaid/plantuml 图表渲染）
 const markdownComponents = {
-    code: (props: {
-        children?: ReactNode;
-        lang?: string;
-        block?: boolean;
-        className?: string;
-        streamStatus?: 'loading' | 'done';
-    }) => {
-        const lang =
-            props.lang ||
-            props.className?.match(/(?:^|\s)language-([^\s]+)/)?.[1] ||
-            '';
-        const text = String(props.children || '').replace(/\n$/, '');
-        if (lang === 'mermaid' && props.block) {
-            return <Mermaid chart={text} streamStatus={props.streamStatus} />;
-        }
-        return <code className={props.className}>{props.children}</code>;
-    },
+    code: CodeBlock,
 };
 
 interface ChatInput {

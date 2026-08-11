@@ -23,6 +23,9 @@ importers:
       mermaid:
         specifier: ^11.16.1
         version: 11.16.1
+      plantuml-encoder:
+        specifier: ^1.4.0
+        version: 1.4.0
       react:
         specifier: ^19.2.1
         version: 19.2.8
@@ -36,6 +39,9 @@ importers:
       '@types/node':
         specifier: ^22.15.0
         version: 22.20.1
+      '@types/plantuml-encoder':
+        specifier: ^1.4.2
+        version: 1.4.2
       '@types/react':
         specifier: ^19.1.10
         version: 19.2.18
@@ -856,6 +862,9 @@ packages:
 
   '@types/node@22.20.1':
     resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
+
+  '@types/plantuml-encoder@1.4.2':
+    resolution: {integrity: sha512-R60SYlcXyTXQebyVwcarGSJUucuwYY5wetBWAOnRt3k52flBXgt4R1KrxaZ4xpk5MpVo9titpVBBhgl/A9JWRQ==}
 
   '@types/prismjs@1.26.6':
     resolution: {integrity: sha512-vqlvI7qlMvcCBbVe0AKAb4f97//Hy0EBTaiW8AalRnG/xAN5zOiWWyrNqNXeq8+KAuvRewjCVY1+IPxk4RdNYw==}
@@ -1738,6 +1747,9 @@ packages:
   picomatch@4.0.5:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
+
+  plantuml-encoder@1.4.0:
+    resolution: {integrity: sha512-sxMwpDw/ySY1WB2CE3+IdMuEcWibJ72DDOsXLkSmEaSzwEUaYBT6DWgOfBiHGCux4q433X6+OEFWjlVqp7gL6g==}
 
   points-on-curve@0.2.0:
     resolution: {integrity: sha512-0mYKnYYe9ZcqMCWhUjItv/oHjvgEsfKvnUTg8sAtnHr3GVy7rGkXCb6d5cSyqrWqL4k81b9CPg3urd+T7aop3A==}
@@ -2768,6 +2780,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/plantuml-encoder@1.4.2':
+    dependencies:
+      '@types/node': 22.20.1
+
   '@types/prismjs@1.26.6': {}
 
   '@types/react-dom@19.2.4(@types/react@19.2.18)':
@@ -3729,6 +3745,8 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@4.0.5: {}
+
+  plantuml-encoder@1.4.0: {}
 
   points-on-curve@0.2.0: {}
 

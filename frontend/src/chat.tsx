@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
 import latexPlugin from '@ant-design/x-markdown/plugins/Latex';
@@ -10,7 +10,7 @@ import {
     type TransformMessage,
     type XRequestOptions,
 } from '@ant-design/x-sdk';
-import Mermaid from './components/Mermaid';
+import CodeBlock from './components/CodeBlock';
 
 // 配置 Marked 支持 LaTeX 数学公式（使用 @ant-design/x-markdown 内置插件，已内置 katex 样式）
 // latexPlugin() 返回 TokenizerAndRendererExtension[]，需用 { extensions } 包裹成 MarkedExtension 对象
@@ -22,25 +22,9 @@ const markedExtensions = {
     }),
 };
 
-// 自定义组件：识别 mermaid 代码块并渲染为图表
+// 自定义组件：所有代码块统一用 CodeBlock（含复制按钮、mermaid/plantuml 图表渲染）
 const markdownComponents = {
-    code: (props: {
-        children?: ReactNode;
-        lang?: string;
-        block?: boolean;
-        className?: string;
-        streamStatus?: 'loading' | 'done';
-    }) => {
-        const lang =
-            props.lang ||
-            props.className?.match(/(?:^|\s)language-([^\s]+)/)?.[1] ||
-            '';
-        const text = String(props.children || '').replace(/\n$/, '');
-        if (lang === 'mermaid' && props.block) {
-            return <Mermaid chart={text} streamStatus={props.streamStatus} />;
-        }
-        return <code className={props.className}>{props.children}</code>;
-    },
+    code: CodeBlock,
 };
 
 interface ChatInput {
