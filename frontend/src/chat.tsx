@@ -48,6 +48,13 @@ class ChatProvider extends AbstractChatProvider<string, ChatInput, SSEOutput> {
     }
 }
 
+// 角色配置：local=用户(end)，其他=AI(start)
+// 引用保持稳定，避免每次渲染都重建对象导致打字动画重置
+const roles = {
+    user: { placement: 'end' as const },
+    ai: { placement: 'start' as const },
+};
+
 export default function Chat() {
     const [input, setInput] = useState('');
 
@@ -69,21 +76,23 @@ export default function Chat() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 16 }}>
-            <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-                {messages.length === 0 ? (
-                    <div style={{ color: '#999', textAlign: 'center', marginTop: 48 }}>
-                        发送一条消息开始对话
-                    </div>
-                ) : (
-                    messages.map((msg) => (
-                        <Bubble
-                            key={msg.id}
-                            placement={msg.status === 'local' ? 'start' : 'end'}
-                            content={msg.message}
-                        />
-                    ))
-                )}
-            </div>
+            {messages.length === 0 ? (
+                <div style={{ color: '#999', textAlign: 'center', marginTop: 48 }}>
+                    发送一条消息开始对话
+                </div>
+            ) : (
+                <Bubble.List
+                    style={{ flex: 1, minHeight: 0 }}
+                    autoScroll
+                    role={roles}
+                    items={messages.map((msg) => ({
+                        key: msg.id,
+                        role: msg.status === 'local' ? 'user' : 'ai',
+                        content: msg.message,
+                        status: msg.status,
+                    }))}
+                />
+            )}
             <Sender
                 value={input}
                 onChange={setInput}

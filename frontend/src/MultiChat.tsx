@@ -21,6 +21,13 @@ interface ChatInput {
     message: string;
 }
 
+// 角色配置：local=用户(end)，其他=AI(start)
+// 引用保持稳定，避免每次渲染都重建对象导致打字动画重置
+const roles = {
+    user: { placement: 'end' as const },
+    ai: { placement: 'start' as const },
+};
+
 /**
  * 自定义 Provider：
  * - transformLocalMessage: 把 { message: "xxx" } 转成展示用的字符串
@@ -124,28 +131,30 @@ export default function MultiChat() {
                     onDelete={handleDelete}
                 />
             </Sider>
-            <Content style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-                    {messages.length === 0 ? (
-                        <div
-                            style={{
-                                color: token.colorTextSecondary,
-                                textAlign: 'center',
-                                marginTop: 48,
-                            }}
-                        >
-                            发送一条消息开始对话
-                        </div>
-                    ) : (
-                        messages.map((msg) => (
-                            <Bubble
-                                key={msg.id}
-                                placement={msg.status === 'local' ? 'start' : 'end'}
-                                content={msg.message}
-                            />
-                        ))
-                    )}
-                </div>
+            <Content style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                {messages.length === 0 ? (
+                    <div
+                        style={{
+                            color: token.colorTextSecondary,
+                            textAlign: 'center',
+                            marginTop: 48,
+                        }}
+                    >
+                        发送一条消息开始对话
+                    </div>
+                ) : (
+                    <Bubble.List
+                        style={{ flex: 1, minHeight: 0, padding: 16 }}
+                        autoScroll
+                        role={roles}
+                        items={messages.map((msg) => ({
+                            key: msg.id,
+                            role: msg.status === 'local' ? 'user' : 'ai',
+                            content: msg.message,
+                            status: msg.status,
+                        }))}
+                    />
+                )}
                 <div
                     style={{ padding: 16, borderTop: `1px solid ${token.colorBorderSecondary}` }}
                 >
