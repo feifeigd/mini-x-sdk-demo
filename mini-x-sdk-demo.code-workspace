@@ -1,0 +1,42 @@
+{
+  "folders": [
+    {
+      "name": "root",
+      "path": "."
+    },
+    {
+      "name": "backend",
+      "path": "backend"
+    },
+    {
+      "name": "frontend",
+      "path": "frontend"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "python.pythonPath": "${workspaceFolder:backend}/.venv/Scripts/python.exe",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.defaultInterpreterPath": "${workspaceFolder:backend}/.venv/Scripts/python.exe",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "js/ts.preferences.importModuleSpecifier": "relative",
+    "js/ts.tsdk.path": "${workspaceFolder:frontend}/node_modules/typescript/lib",
+    "eslint.workingDirectories": [
+      "${workspaceFolder:frontend}"
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-python.debugpy",
+      "astral-sh.uv",
+      "charliermarsh.ruff",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "formulahendry.auto-rename-tag",
+      "bradlc.vscode-tailwindcss"
+    ]
+  }
+}

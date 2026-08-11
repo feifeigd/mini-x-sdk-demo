@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: FastAPI (uv run)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder:backend}",
+      "python": "${workspaceFolder:backend}/.venv/Scripts/python.exe",
+      "args": [
+        "main:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000"
+      ],
+      "justMyCode": true
+    },
+    {
+      "name": "Frontend: React (Vite)",
+      "type": "chrome",
+      "request": "launch",
+      "runtimeExecutable": "C:\\Users\\Administrator\\AppData\\Local\\Google\\Chrome\\Bin\\chrome.exe",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder:frontend}",
+      "sourceMaps": true,
+      "preLaunchTask": "Start Frontend Dev Server",
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${webRoot}/src/*",
+        "webpack:///src/*": "${webRoot}/src/*",
+        "webpack:///*": "${webRoot}/*",
+        "/src/*": "${webRoot}/src/*"
+      }
+    },
+    {
+      "name": "Frontend: Attach to Chrome",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder:frontend}",
+      "sourceMaps": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (Backend + Frontend)",
+      "configurations": [
+        "Python: FastAPI (uv run)",
+        "Frontend: React (Vite)"
+      ],
+      "stopAll": true
+    }
+  ]
+}

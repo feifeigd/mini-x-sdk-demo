@@ -1,0 +1,136 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Frontend Dev Server",
+      "type": "shell",
+      "command": "pnpm",
+      "args": [
+        "run",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:frontend}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE v.*",
+          "endsPattern": "Local:.*http://localhost:5173"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Start Backend (uv run, non-debug)",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "run",
+        "uvicorn",
+        "main:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000",
+        "--reload"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:backend}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "uvicorn",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "INFO:",
+          "endsPattern": "Application startup complete"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Build Frontend",
+      "type": "shell",
+      "command": "pnpm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:frontend}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: Sync Backend Dependencies",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "sync"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:backend}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: Create Backend Venv",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "venv"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:backend}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: Install Backend Package (Add)",
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "add",
+        "${input:packageName}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:backend}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Frontend Dependencies",
+      "type": "shell",
+      "command": "pnpm",
+      "args": [
+        "install"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder:frontend}"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "packageName",
+      "type": "promptString",
+      "description": "Enter the Python package name to add to backend"
+    }
+  ]
+}
