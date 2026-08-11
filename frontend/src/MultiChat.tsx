@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Layout, theme } from 'antd';
 import { Bubble, Sender } from '@ant-design/x';
+import { XMarkdown } from '@ant-design/x-markdown';
+import latexPlugin from '@ant-design/x-markdown/plugins/Latex';
 import {
     AbstractChatProvider,
     XRequest,
@@ -17,15 +19,44 @@ import { nextConvId } from './components/conversation-utils';
 const { Sider, Content } = Layout;
 const { useToken } = theme;
 
+// 配置 Marked 支持 LaTeX 数学公式（使用 @ant-design/x-markdown 内置插件，已内置 katex 样式）
+// latexPlugin() 返回 TokenizerAndRendererExtension[]，需用 { extensions } 包裹成 MarkedExtension 对象
+const markedExtensions = {
+    extensions: latexPlugin({
+        katexOptions: {
+            throwOnError: false,
+        },
+    }),
+};
+
 interface ChatInput {
     message: string;
 }
 
 // 角色配置：local=用户(end)，其他=AI(start)
 // 引用保持稳定，避免每次渲染都重建对象导致打字动画重置
+// AI 消息用 XMarkdown 渲染，支持 LaTeX 数学公式
 const roles = {
-    user: { placement: 'end' as const },
-    ai: { placement: 'start' as const },
+    user: {
+        placement: 'end' as const,
+        contentRender: (content: string) => (
+            <XMarkdown content={content} config={markedExtensions} />
+        ),
+    },
+    ai: {
+        placement: 'start' as const,
+        contentRender: (content: string, info: { status?: string }) => (
+            <XMarkdown
+                content={content}
+                config={markedExtensions}
+                streaming={{
+                    hasNextChunk:
+                        info.status === 'loading' || info.status === 'updating',
+                    enableAnimation: true,
+                }}
+            />
+        ),
+    },
 };
 
 /**

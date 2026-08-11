@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
+import latexPlugin from '@ant-design/x-markdown/plugins/Latex';
 import {
     AbstractChatProvider,
     XRequest,
@@ -9,6 +10,16 @@ import {
     type TransformMessage,
     type XRequestOptions,
 } from '@ant-design/x-sdk';
+
+// 配置 Marked 支持 LaTeX 数学公式（使用 @ant-design/x-markdown 内置插件，已内置 katex 样式）
+// latexPlugin() 返回 TokenizerAndRendererExtension[]，需用 { extensions } 包裹成 MarkedExtension 对象
+const markedExtensions = {
+    extensions: latexPlugin({
+        katexOptions: {
+            throwOnError: false,
+        },
+    }),
+};
 
 interface ChatInput {
     message: string;
@@ -53,12 +64,18 @@ class ChatProvider extends AbstractChatProvider<string, ChatInput, SSEOutput> {
 // 引用保持稳定，避免每次渲染都重建对象导致打字动画重置
 // AI 消息用 XMarkdown 渲染，流式时设 hasNextChunk=true 启用打字机/淡入动画
 const roles = {
-    user: { placement: 'end' as const },
+    user: {
+        placement: 'end' as const,
+        contentRender: (content: string) => (
+            <XMarkdown content={content} config={markedExtensions} />
+        ),
+    },
     ai: {
         placement: 'start' as const,
         contentRender: (content: string, info: { status?: string }) => (
             <XMarkdown
                 content={content}
+                config={markedExtensions}
                 streaming={{
                     hasNextChunk:
                         info.status === 'loading' || info.status === 'updating',
