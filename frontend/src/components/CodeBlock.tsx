@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Mermaid from './Mermaid';
 import PlantUml from './PlantUml';
 
@@ -12,7 +14,7 @@ interface CodeBlockProps {
 
 /**
  * 统一代码块组件：
- * - 块级代码（含 mermaid/plantuml/普通代码）带语言标签 + 复制按钮
+ * - 块级代码（含 mermaid/plantuml/普通代码）带语言标签 + 复制按钮 + 语法高亮
  * - 行内代码直接渲染
  */
 export default function CodeBlock({
@@ -62,10 +64,10 @@ export default function CodeBlock({
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '4px 12px',
-                    background: '#f6f8fa',
+                    background: '#282c34',
                     borderBottom: '1px solid #e8e8e8',
                     fontSize: 12,
-                    color: '#666',
+                    color: '#aaa',
                 }}
             >
                 <span>{lang || 'text'}</span>
@@ -76,7 +78,7 @@ export default function CodeBlock({
                         background: 'none',
                         cursor: 'pointer',
                         fontSize: 12,
-                        color: copied ? '#52c41a' : '#1890ff',
+                        color: copied ? '#52c41a' : '#61dafb',
                         padding: '2px 8px',
                         borderRadius: 4,
                     }}
@@ -86,17 +88,27 @@ export default function CodeBlock({
             </div>
 
             {/* 内容区 */}
-            <div style={{ padding: isDiagram ? 0 : 12, background: '#f6f8fa' }}>
                 {isMermaid ? (
+                <div style={{ padding: 12, background: '#f6f8fa' }}>
                     <Mermaid chart={text} streamStatus={streamStatus} />
+                </div>
                 ) : isPlantUml ? (
+                <div style={{ padding: 12, background: '#f6f8fa' }}>
                     <PlantUml chart={text} streamStatus={streamStatus} />
+                </div>
                 ) : (
-                    <pre style={{ margin: 0, overflow: 'auto', fontSize: 13 }}>
-                        <code className={className}>{children}</code>
-                    </pre>
+                <SyntaxHighlighter
+                    language={lang || 'text'}
+                    style={oneDark}
+                    customStyle={{
+                        margin: 0,
+                        fontSize: 13,
+                        borderRadius: 0,
+                    }}
+                >
+                    {text}
+                </SyntaxHighlighter>
                 )}
-            </div>
         </div>
     );
 }
