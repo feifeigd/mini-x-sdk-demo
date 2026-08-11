@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
 import latexPlugin from '@ant-design/x-markdown/plugins/Latex';
@@ -10,6 +10,7 @@ import {
     type TransformMessage,
     type XRequestOptions,
 } from '@ant-design/x-sdk';
+import Mermaid from './components/Mermaid';
 
 // 配置 Marked 支持 LaTeX 数学公式（使用 @ant-design/x-markdown 内置插件，已内置 katex 样式）
 // latexPlugin() 返回 TokenizerAndRendererExtension[]，需用 { extensions } 包裹成 MarkedExtension 对象
@@ -19,6 +20,27 @@ const markedExtensions = {
             throwOnError: false,
         },
     }),
+};
+
+// 自定义组件：识别 mermaid 代码块并渲染为图表
+const markdownComponents = {
+    code: (props: {
+        children?: ReactNode;
+        lang?: string;
+        block?: boolean;
+        className?: string;
+        streamStatus?: 'loading' | 'done';
+    }) => {
+        const lang =
+            props.lang ||
+            props.className?.match(/(?:^|\s)language-([^\s]+)/)?.[1] ||
+            '';
+        const text = String(props.children || '').replace(/\n$/, '');
+        if (lang === 'mermaid' && props.block) {
+            return <Mermaid chart={text} streamStatus={props.streamStatus} />;
+        }
+        return <code className={props.className}>{props.children}</code>;
+    },
 };
 
 interface ChatInput {
@@ -67,7 +89,11 @@ const roles = {
     user: {
         placement: 'end' as const,
         contentRender: (content: string) => (
-            <XMarkdown content={content} config={markedExtensions} />
+            <XMarkdown
+                content={content}
+                config={markedExtensions}
+                components={markdownComponents}
+            />
         ),
     },
     ai: {
@@ -76,6 +102,7 @@ const roles = {
             <XMarkdown
                 content={content}
                 config={markedExtensions}
+                components={markdownComponents}
                 streaming={{
                     hasNextChunk:
                         info.status === 'loading' || info.status === 'updating',

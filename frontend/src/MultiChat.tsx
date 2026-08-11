@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Layout, theme } from 'antd';
 import { Bubble, Sender } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
@@ -15,6 +15,7 @@ import ConversationList, {
     type ConversationListItem,
 } from './components/ConversationList';
 import { nextConvId } from './components/conversation-utils';
+import Mermaid from './components/Mermaid';
 
 const { Sider, Content } = Layout;
 const { useToken } = theme;
@@ -29,18 +30,43 @@ const markedExtensions = {
     }),
 };
 
+// 自定义组件：识别 mermaid 代码块并渲染为图表
+const markdownComponents = {
+    code: (props: {
+        children?: ReactNode;
+        lang?: string;
+        block?: boolean;
+        className?: string;
+        streamStatus?: 'loading' | 'done';
+    }) => {
+        const lang =
+            props.lang ||
+            props.className?.match(/(?:^|\s)language-([^\s]+)/)?.[1] ||
+            '';
+        const text = String(props.children || '').replace(/\n$/, '');
+        if (lang === 'mermaid' && props.block) {
+            return <Mermaid chart={text} streamStatus={props.streamStatus} />;
+        }
+        return <code className={props.className}>{props.children}</code>;
+    },
+};
+
 interface ChatInput {
     message: string;
 }
 
 // 角色配置：local=用户(end)，其他=AI(start)
 // 引用保持稳定，避免每次渲染都重建对象导致打字动画重置
-// AI 消息用 XMarkdown 渲染，支持 LaTeX 数学公式
+// AI 消息用 XMarkdown 渲染，支持 LaTeX 数学公式和 Mermaid 图表
 const roles = {
     user: {
         placement: 'end' as const,
         contentRender: (content: string) => (
-            <XMarkdown content={content} config={markedExtensions} />
+            <XMarkdown
+                content={content}
+                config={markedExtensions}
+                components={markdownComponents}
+            />
         ),
     },
     ai: {
@@ -49,6 +75,7 @@ const roles = {
             <XMarkdown
                 content={content}
                 config={markedExtensions}
+                components={markdownComponents}
                 streaming={{
                     hasNextChunk:
                         info.status === 'loading' || info.status === 'updating',
