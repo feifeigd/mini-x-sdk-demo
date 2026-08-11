@@ -11,6 +11,7 @@ import {
     type XRequestOptions,
 } from '@ant-design/x-sdk';
 import CodeBlock from './components/CodeBlock';
+import ThinkComponent from './components/ThinkComponent';
 
 // 配置 Marked 支持 LaTeX 数学公式（使用 @ant-design/x-markdown 内置插件，已内置 katex 样式）
 // latexPlugin() 返回 TokenizerAndRendererExtension[]，需用 { extensions } 包裹成 MarkedExtension 对象
@@ -22,9 +23,12 @@ const markedExtensions = {
     }),
 };
 
-// 自定义组件：所有代码块统一用 CodeBlock（含复制按钮、mermaid/plantuml 图表渲染）
+// 自定义组件：
+// - code: CodeBlock（语法高亮 + 复制 + 图表 Tab 切换）
+// - think: ThinkComponent（<think> 推理标签，折叠框显示思考过程）
 const markdownComponents = {
     code: CodeBlock,
+    think: ThinkComponent,
 };
 
 interface ChatInput {

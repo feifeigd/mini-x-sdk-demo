@@ -16,6 +16,7 @@ import ConversationList, {
 } from './components/ConversationList';
 import { nextConvId } from './components/conversation-utils';
 import CodeBlock from './components/CodeBlock';
+import ThinkComponent from './components/ThinkComponent';
 
 const { Sider, Content } = Layout;
 const { useToken } = theme;
@@ -30,9 +31,12 @@ const markedExtensions = {
     }),
 };
 
-// 自定义组件：所有代码块统一用 CodeBlock（含复制按钮、mermaid/plantuml 图表渲染）
+// 自定义组件：
+// - code: CodeBlock（语法高亮 + 复制 + 图表 Tab 切换）
+// - think: ThinkComponent（<think> 推理标签，折叠框显示思考过程）
 const markdownComponents = {
     code: CodeBlock,
+    think: ThinkComponent,
 };
 
 interface ChatInput {
